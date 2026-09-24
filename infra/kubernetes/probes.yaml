@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: probe-node
+spec:
+  replicas: 2
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: probe-node}
+  template:
+    metadata:
+      labels:
+        app: probe-node
+        app.kubernetes.io/part-of: observa-spike0
+        app.kubernetes.io/component: probe
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: probe-node
+          image: observa-probe-node:spike0
+          imagePullPolicy: Never
+          env:
+            - {name: KAFKA_BOOTSTRAP_SERVERS, value: 'kafka:9092'}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: 'http://collector:4318'}
+            - {name: OTEL_SERVICE_NAME, value: probe-node}
+            - {name: OTEL_TRACES_SAMPLER, value: always_on}
+          ports:
+            - {name: metrics, containerPort: 8000}
+          readinessProbe:
+            httpGet: {path: /health, port: metrics}
+          startupProbe:
+            httpGet: {path: /health, port: metrics}
+            failureThreshold: 60
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: probe-python-sink
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector:
+    matchLabels: {app: probe-python-sink}
+  template:
+    metadata:
+      labels:
+        app: probe-python-sink
+        app.kubernetes.io/part-of: observa-spike0
+        app.kubernetes.io/component: probe
+    spec:
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 40
+      containers:
+        - name: probe-python
+          image: observa-probe-python:spike0
+          imagePullPolicy: Never
+          command: [python, -m, observa_probe, sink]
+          env:
+            - {name: KAFKA_BOOTSTRAP_SERVERS, value: 'kafka:9092'}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: 'http://collector:4318'}
+            - {name: OTEL_SERVICE_NAME, value: probe-python-sink}
+            - {name: OTEL_TRACES_SAMPLER, value: always_on}
+          ports:
+            - {name: metrics, containerPort: 8000}
+          readinessProbe:
+            httpGet: {path: /health, port: metrics}
+          startupProbe:
+            httpGet: {path: /health, port: metrics}
+            failureThreshold: 60
+            periodSeconds: 5
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: probe-node
+spec:
+  clusterIP: None
+  selector: {app: probe-node}
+  ports:
+    - {name: metrics, port: 8000, targetPort: metrics}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: probe-python-sink
+spec:
+  clusterIP: None
+  selector: {app: probe-python-sink}
+  ports:
+    - {name: metrics, port: 8000, targetPort: metrics}

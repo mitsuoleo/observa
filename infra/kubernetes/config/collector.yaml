@@ -1,0 +1,71 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  file_storage:
+    directory: /var/lib/otelcol
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  filelog/probes:
+    include:
+      - /var/log/pods/observa-spike0_*/probe-python*/*.log
+      - /var/log/pods/observa-spike0_*/probe-node/*.log
+    exclude:
+      - /var/log/pods/observa-spike0_collector*/*/*.log
+    start_at: beginning
+    include_file_path: true
+    storage: file_storage
+    operators:
+      - type: container
+        id: container-parser
+      - type: json_parser
+        parse_from: body
+        parse_to: attributes.app
+        on_error: send
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 384
+    spike_limit_mib: 64
+  transform/logs:
+    error_mode: ignore
+    log_statements:
+      - context: log
+        statements:
+          - set(resource.attributes["service.name"], attributes["app"]["service_name"]) where attributes["app"]["service_name"] != nil
+          - set(resource.attributes["service.instance.id"], attributes["app"]["service_instance_id"]) where attributes["app"]["service_instance_id"] != nil
+          - set(resource.attributes["k8s.namespace.name"], "observa-spike0")
+          - set(resource.attributes["deployment.environment.name"], "spike0")
+  batch:
+    timeout: 1s
+    send_batch_size: 128
+exporters:
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  otlphttp/loki:
+    endpoint: http://loki:3100/otlp
+service:
+  extensions: [health_check, file_storage]
+  telemetry:
+    metrics:
+      readers:
+        - pull:
+            exporter:
+              prometheus:
+                host: 0.0.0.0
+                port: 8888
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [otlp/tempo]
+    logs:
+      receivers: [filelog/probes]
+      processors: [memory_limiter, transform/logs, batch]
+      exporters: [otlphttp/loki]

@@ -1,0 +1,9 @@
+.git
+.local
+.tools
+**/node_modules
+**/.venv
+**/dist
+**/coverage
+**/__pycache__
+**/.pytest_cache

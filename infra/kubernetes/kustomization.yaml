@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: observa-spike0
+resources:
+  - namespace.yaml
+  - kafka.yaml
+  - backends.yaml
+  - collector.yaml
+  - probes.yaml
+configMapGenerator:
+  - name: collector-config
+    files: [config.yaml=config/collector.yaml]
+  - name: tempo-config
+    files: [config.yaml=config/tempo.yaml]
+  - name: loki-config
+    files: [config.yaml=config/loki.yaml]
+  - name: prometheus-config
+    files: [prometheus.yml=config/prometheus.yaml]
+  - name: grafana-datasources
+    files: [datasources.yaml=config/grafana.yaml]

@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: observa-spike0
+  labels:
+    app.kubernetes.io/part-of: observa-spike0

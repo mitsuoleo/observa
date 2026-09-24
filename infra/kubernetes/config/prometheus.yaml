@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: collector
+    static_configs:
+      - targets: ['collector:8888']
+  - job_name: probes
+    dns_sd_configs:
+      - names: ['probe-node.observa-spike0.svc.cluster.local', 'probe-python-sink.observa-spike0.svc.cluster.local']
+        type: A
+        port: 8000
