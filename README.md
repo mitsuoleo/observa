@@ -67,3 +67,7 @@ O sucesso da API não certifica os cliques de UI. O verificador também não afi
 - `docs/product/`: escopo, handoff e relatório do spike.
 
 Consulte `docs/product/spike-0-report.md` para a evidência histórica do Spike 0 e o runbook do MVP para a jornada atual.
+
+## Convenção de commits
+
+Use `<tipo>: <descrição em português>`, com os tipos convencionais `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf` e `ci`. Exemplo: `feat: adicionar confirmação de pedidos`.
