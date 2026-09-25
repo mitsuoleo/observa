@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "observa-harness"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["psycopg[binary]==3.2.10"]
+
+[project.optional-dependencies]
+test = ["pytest==9.0.3", "ruff==0.13.2"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["observa_harness*"]
+
+[tool.setuptools.package-data]
+observa_harness = ["schema.sql"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

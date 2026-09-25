@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/envelope.v1.json",
+  "title": "DomainEventEnvelope",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "event_id",
+    "event_type",
+    "version",
+    "correlation_id",
+    "occurred_at",
+    "payload"
+  ],
+  "properties": {
+    "event_id": { "type": "string", "format": "uuid" },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "order.created",
+        "order.completed",
+        "order.failed",
+        "payment.approved",
+        "payment.rejected",
+        "payment.refund.requested",
+        "payment.refunded",
+        "stock.reserved",
+        "stock.unavailable"
+      ]
+    },
+    "version": { "type": "integer", "minimum": 1 },
+    "correlation_id": { "type": "string", "format": "uuid" },
+    "occurred_at": { "type": "string", "format": "date-time" },
+    "payload": { "type": "object" }
+  }
+}

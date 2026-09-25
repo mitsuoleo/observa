@@ -204,6 +204,7 @@ spec:
         - --storage.tsdb.path=/prometheus
         - --storage.tsdb.retention.time=24h
         - --storage.tsdb.retention.size=512MB
+        - --enable-feature=exemplar-storage
       volumes:
       - name: config
         configMap:
@@ -260,10 +261,10 @@ spec:
         resources:
           requests:
             cpu: 100m
-            memory: 128Mi
+            memory: 256Mi
           limits:
             cpu: 300m
-            memory: 512Mi
+            memory: 768Mi
         readinessProbe:
           httpGet:
             path: /api/health
@@ -276,6 +277,12 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /etc/grafana/provisioning/datasources
+          readOnly: true
+        - name: dashboard-provider
+          mountPath: /etc/grafana/provisioning/dashboards
+          readOnly: true
+        - name: mvp-dashboard
+          mountPath: /etc/grafana/provisioning/observa-dashboards
           readOnly: true
         - name: data
           mountPath: /var/lib/grafana
@@ -302,6 +309,12 @@ spec:
       - name: config
         configMap:
           name: grafana-datasources
+      - name: dashboard-provider
+        configMap:
+          name: grafana-dashboard-provider
+      - name: mvp-dashboard
+        configMap:
+          name: grafana-mvp-dashboard
       - name: data
         persistentVolumeClaim:
           claimName: grafana-data

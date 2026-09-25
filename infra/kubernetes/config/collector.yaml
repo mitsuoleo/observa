@@ -14,6 +14,10 @@ receivers:
     include:
       - /var/log/pods/observa-spike0_*/probe-python*/*.log
       - /var/log/pods/observa-spike0_*/probe-node/*.log
+      - /var/log/pods/observa-spike0_order-*/*/*.log
+      - /var/log/pods/observa-spike0_payment-*/*/*.log
+      - /var/log/pods/observa-spike0_inventory-*/*/*.log
+      - /var/log/pods/observa-spike0_notification-*/*/*.log
     exclude:
       - /var/log/pods/observa-spike0_collector*/*/*.log
     start_at: beginning

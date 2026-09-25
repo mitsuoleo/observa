@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: order, namespace: observa-spike0}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: order}}
+  template:
+    metadata: {labels: {app: order}}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: order
+          image: observa-order:dev
+          imagePullPolicy: Never
+          env:
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: observa-postgres, key: orders-url}}
+            - {name: KAFKA_BOOTSTRAP_SERVERS, value: kafka:9092}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: 'http://collector:4318'}
+          ports: [{name: http, containerPort: 8000}]
+          startupProbe: {httpGet: {path: /health, port: http}, failureThreshold: 60, periodSeconds: 5}
+          readinessProbe: {httpGet: {path: /ready, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 15}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 300m, memory: 384Mi}
+          securityContext: {runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: order, namespace: observa-spike0}
+spec:
+  selector: {app: order}
+  ports: [{name: http, port: 8000, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: payment, namespace: observa-spike0}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: payment}}
+  template:
+    metadata: {labels: {app: payment}}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: payment
+          image: observa-payment:dev
+          imagePullPolicy: Never
+          env:
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: observa-postgres, key: payments-url}}
+            - {name: KAFKA_BOOTSTRAP_SERVERS, value: kafka:9092}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: 'http://collector:4318'}
+          ports: [{name: http, containerPort: 8000}]
+          startupProbe: {httpGet: {path: /health, port: http}, failureThreshold: 60, periodSeconds: 5}
+          readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 15}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 300m, memory: 384Mi}
+          securityContext: {runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: payment, namespace: observa-spike0}
+spec:
+  selector: {app: payment}
+  ports: [{name: http, port: 8000, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: inventory, namespace: observa-spike0}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: inventory}}
+  template:
+    metadata: {labels: {app: inventory}}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: inventory
+          image: observa-inventory:dev
+          imagePullPolicy: Never
+          env:
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: observa-postgres, key: inventory-url}}
+            - {name: KAFKA_BOOTSTRAP_SERVERS, value: kafka:9092}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: 'http://collector:4318'}
+          ports: [{name: http, containerPort: 8000}]
+          startupProbe: {httpGet: {path: /health, port: http}, failureThreshold: 60, periodSeconds: 5}
+          readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 15}
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 300m, memory: 384Mi}
+          securityContext: {runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: inventory, namespace: observa-spike0}
+spec:
+  selector: {app: inventory}
+  ports: [{name: http, port: 8000, targetPort: http}]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: notification, namespace: observa-spike0}
+spec:
+  replicas: 1
+  strategy: {type: Recreate}
+  selector: {matchLabels: {app: notification}}
+  template:
+    metadata: {labels: {app: notification}}
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: notification
+          image: observa-notification:dev
+          imagePullPolicy: Never
+          env:
+            - name: DATABASE_URL
+              valueFrom: {secretKeyRef: {name: observa-postgres, key: notifications-url}}
+            - {name: KAFKA_BOOTSTRAP_SERVERS, value: kafka:9092}
+            - {name: OTEL_EXPORTER_OTLP_ENDPOINT, value: 'http://collector:4318'}
+          ports: [{name: http, containerPort: 8000}]
+          startupProbe: {httpGet: {path: /health, port: http}, failureThreshold: 60, periodSeconds: 5}
+          readinessProbe: {httpGet: {path: /ready, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 15}
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          securityContext: {runAsNonRoot: true, runAsUser: 1000, allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata: {name: notification, namespace: observa-spike0}
+spec:
+  selector: {app: notification}
+  ports: [{name: http, port: 8000, targetPort: http}]

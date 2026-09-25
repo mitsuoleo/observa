@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: observa-us002-postgres-harness, namespace: observa-spike0}
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 180
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+        - name: harness
+          image: observa-harness-test:us002
+          imagePullPolicy: Never
+          env:
+            - name: OBSERVA_HARNESS_DSN
+              valueFrom: {secretKeyRef: {name: observa-postgres, key: harness-url}}
+            - {name: HOME, value: /tmp}
+            - {name: RUFF_CACHE_DIR, value: /tmp/ruff_cache}
+          command: [sh, -c, 'ruff check observa_harness tests && pytest -q -p no:cacheprovider']
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

@@ -32,7 +32,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** mudar schemas JSON públicos; múltiplos tópicos de retry; exatamente uma vez ponta a ponta; relay multi-réplica.
 - **Critérios de aceite:** testes de contrato equivalentes em Python e Node validam o mesmo evento, key e headers; crash após commit e antes de offset resulta em redelivery idempotente; documento de garantia de ordem contém as exclusões de retry/DLT e concorrência.
 - **Dependências:** US-001 concluída; capacidades dos clientes Kafka confirmadas.
-- **Prontidão:** **Ready**. US-001 validada; execução de US-002 ainda não iniciada.
+- **Prontidão:** **Implementada e validada localmente**. Jobs Kafka Python/Node e harness Postgres repetíveis pelo `mvp.ps1 contract`; evidências no [relatório do MVP](mvp-report.md).
 - **Verificações:** testes unitários do adapter; teste de integração Kafka; teste de carrier persistido/rehidratado; revisão de cardinalidade e de segredos.
 - **Incertezas:** forma interna da coluna/estrutura do carrier e cliente Kafka específico; o agente pode decidir esses detalhes sem mudar o contrato externo.
 
@@ -45,7 +45,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** Inventory, compensação, Notification, dashboard final e declaração de MVP.
 - **Critérios de aceite:** pedido inicia `PENDING`; Payment publica exatamente um efeito lógico por `event_id`; aprovação e rejeição são forçáveis; uma trace liga HTTP → Order/outbox → Kafka → Payment → Kafka; duplicata não cria segundo pagamento.
 - **Dependências:** US-002.
-- **Prontidão:** **Dependent**.
+- **Prontidão:** **Implementada e validada localmente**. Aprovação e rejeição verificadas pelo `mvp.ps1 demo`.
 - **Verificações:** testes unitários de decisão; integração com Postgres/Kafka; contrato de schema; falha entre commit/offset; consulta de trace/log.
 - **Incertezas:** organização interna dos módulos e estratégia de fixture, delegadas ao agente.
 
@@ -58,7 +58,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** Notification, HPA, circuit breaker e chaos amplo.
 - **Critérios de aceite:** happy path confirma; indisponibilidade reembolsa e cancela; redelivery não reduz estoque duas vezes nem duplica reembolso; relatório mostra mesma partição e offsets crescentes no caminho normal do pedido.
 - **Dependências:** US-003.
-- **Prontidão:** **Dependent**.
+- **Prontidão:** **Implementada e validada localmente**. Compensação e recriação do pod Inventory verificadas.
 - **Verificações:** testes de handlers/transações; integração da compensação; crash/redelivery; ordem observada; restart de Inventory em cenário controlado.
 - **Incertezas:** política final de estacionamento de poison pill, desde que respeite os limites documentados da ordem.
 
@@ -71,7 +71,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** notificação externa real, email/SMS e garantia de que Notification bloqueia estado terminal.
 - **Critérios de aceite:** Notification recebe os eventos definidos sem competir com outros grupos; duplicatas produzem uma notificação lógica; trace do cenário feliz contém os quatro serviços e deixa claro que Notification é ramo assíncrono; trace ↔ logs funciona para Notification.
 - **Dependências:** US-004.
-- **Prontidão:** **Dependent**.
+- **Prontidão:** **Implementada e validada localmente**. A trace feliz contém os quatro serviços.
 - **Verificações:** teste de group; idempotência; trace tree; correlação por `order_id` e `trace_id`.
 - **Incertezas:** quais eventos geram registro de notificação no MVP; deve preservar, no mínimo, a cobertura comprovada do OrderFlow.
 
@@ -84,7 +84,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** SLO formal, alertas, retenção de produção e metas numéricas sem baseline.
 - **Critérios de aceite:** dados reais do cenário aparecem no dashboard; o avaliador parte de uma anomalia, abre a trace correta e chega aos logs do span; datasources e links são provisionados como código; `trace_id` não é label Loki indexado.
 - **Dependências:** US-005; dados suficientes para dashboard.
-- **Prontidão:** **Dependent**.
+- **Prontidão:** **Implementada e validada localmente**. Navegação exemplar → Tempo → Loki → Tempo exercitada no navegador.
 - **Verificações:** teste guiado de UI/API dos backends; validação de queries; cardinalidade; reconstrução em ambiente novo.
 - **Incertezas:** thresholds e painéis adicionais, definidos depois do baseline.
 
@@ -97,7 +97,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** HPA, HA, cluster cloud e auto-instalação silenciosa de ferramentas do host.
 - **Critérios de aceite:** um comando idempotente sobe a stack e espera readiness; falha apresenta componente e orientação; remover um pod causa recriação; pedido eventualmente termina sem efeito duplicado; teardown é documentado e seguro.
 - **Dependências:** US-001 e aplicações de US-005; medições de recursos.
-- **Prontidão:** **Dependent**.
+- **Prontidão:** **Implementada e validada localmente**. `up` idempotente, `status` completo e `recovery` passaram.
 - **Verificações:** ambiente novo; segunda execução do comando; restart; consumo de recursos; verificação de secrets e bindings locais.
 - **Incertezas:** valores finais de recursos e timeout, derivados das medições.
 
@@ -110,7 +110,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** transformar medições iniciais em SLO aprovado ou alegar capacidade de produção.
 - **Critérios de aceite:** pessoa não autora executa instruções sem configuração manual oculta; cada requisito do MVP aponta para evidência; limitações são explícitas; nenhum RF/RNF adiado é apresentado como entregue.
 - **Dependências:** US-006 e US-007.
-- **Prontidão:** **Dependent**.
+- **Prontidão:** **Implementada e validada localmente**. Revisor não autor repetiu `status` e `demo` seguindo o [runbook](mvp-runbook.md).
 - **Verificações:** dry run por terceiro/agente independente; checklist de rastreabilidade; revisão de links e comandos; scan de segredos; comparação do snapshot do OrderFlow.
 - **Incertezas:** formato final das capturas/evidências, desde que versionável ou reproduzível.
 

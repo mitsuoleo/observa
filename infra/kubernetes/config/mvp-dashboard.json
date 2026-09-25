@@ -1,0 +1,64 @@
+{
+  "uid": "observa-mvp",
+  "title": "Observa | Jornada do pedido",
+  "tags": ["observa", "mvp"],
+  "schemaVersion": 41,
+  "version": 1,
+  "refresh": "10s",
+  "time": {"from": "now-1h", "to": "now"},
+  "panels": [
+    {
+      "id": 1, "type": "timeseries", "title": "Eventos processados por serviço",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (service) (rate(observa_events_processed_total[5m]))", "legendFormat": "{{service}}"},
+        {"refId": "B", "expr": "rate(payment_consumed_total[5m])", "legendFormat": "payment"},
+        {"refId": "C", "expr": "rate(inventory_consumed_total[5m])", "legendFormat": "inventory"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}}
+    },
+    {
+      "id": 2, "type": "timeseries", "title": "Erros por serviço",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "sum by (service) (rate(observa_errors_total[5m]))", "legendFormat": "{{service}}"},
+        {"refId": "B", "expr": "rate(payment_errors_total[5m])", "legendFormat": "payment"},
+        {"refId": "C", "expr": "rate(inventory_errors_total[5m])", "legendFormat": "inventory"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "ops", "min": 0}}
+    },
+    {
+      "id": 3, "type": "timeseries", "title": "Duração do processamento Order (p95 e trace exemplar)",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "histogram_quantile(0.95, sum by (le) (rate(observa_processing_duration_seconds_bucket{service=\"order\"}[5m])))", "legendFormat": "Order p95", "exemplar": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "s", "min": 0}},
+      "options": {"tooltip": {"mode": "single"}}
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Efeitos de negócio publicados",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 9},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "increase(payment_published_total[1h])", "legendFormat": "pagamentos"},
+        {"refId": "B", "expr": "increase(inventory_published_total[1h])", "legendFormat": "estoque"},
+        {"refId": "C", "expr": "increase(observa_events_processed_total{service=\"notification\"}[1h])", "legendFormat": "notificações"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "min": 0}}
+    },
+    {
+      "id": 5, "type": "timeseries", "title": "Exemplars: clique no trace_id para abrir a trace",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [
+        {"refId": "A", "expr": "observa_processing_duration_seconds_bucket{service=\"order\",le=\"0.05\"}", "legendFormat": "Order até 50 ms", "exemplar": true}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short", "min": 0}},
+      "options": {"showExemplars": true}
+    }
+  ]
+}

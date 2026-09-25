@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/stock.unavailable.v1.json",
+  "title": "StockUnavailable",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "reason"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "reason": { "type": "string" },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "product_id": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer" },
+          "available": { "type": "integer" }
+        }
+      }
+    }
+  }
+}

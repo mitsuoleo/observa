@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/payment.refund.requested.v1.json",
+  "title": "PaymentRefundRequested",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "reason"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "reason": { "type": "string" }
+  }
+}

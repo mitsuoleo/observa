@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: observa-us002-contract
+  namespace: observa-spike0
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 180
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+        - name: contract
+          image: observa-messaging-python-test:us002
+          imagePullPolicy: Never
+          env:
+            - {name: OBSERVA_TEST_KAFKA, value: kafka:9092}
+            - {name: COVERAGE_FILE, value: /tmp/observa-coverage}
+          command: [python, -m, pytest, -q, -p, 'no:cacheprovider', -o, 'addopts=', tests/test_kafka_integration.py]
+          resources:
+            requests: {cpu: 50m, memory: 96Mi}
+            limits: {cpu: 250m, memory: 256Mi}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

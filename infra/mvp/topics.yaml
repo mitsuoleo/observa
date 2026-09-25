@@ -1,0 +1,27 @@
+apiVersion: batch/v1
+kind: Job
+metadata: {name: kafka-domain-topics, namespace: observa-spike0}
+spec:
+  backoffLimit: 2
+  activeDeadlineSeconds: 600
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: OnFailure
+      containers:
+        - name: topics
+          image: apache/kafka:4.2.1@sha256:9916d60eca5d599550e2c320230808fda342124ba550bb4ac4ea8591803262a0
+          resources:
+            requests: {cpu: 50m, memory: 256Mi}
+            limits: {cpu: 250m, memory: 512Mi}
+          command: [/bin/bash, -ec]
+          args:
+            - |
+              for attempt in $(seq 1 30); do
+                if /opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server kafka:9092 >/dev/null 2>&1; then break; fi
+                sleep 3
+              done
+              for topic in order.events.v1 order.events.v1.parked; do
+                /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$topic" --partitions 2 --replication-factor 1
+                /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --describe --topic "$topic"
+              done

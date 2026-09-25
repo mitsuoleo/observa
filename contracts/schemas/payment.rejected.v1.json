@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/payment.rejected.v1.json",
+  "title": "PaymentRejected",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "payment_id", "amount", "reason"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "payment_id": { "type": "string", "format": "uuid" },
+    "amount": { "type": "number" },
+    "reason": { "type": "string" }
+  }
+}

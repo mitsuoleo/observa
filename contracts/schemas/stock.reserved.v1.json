@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/stock.reserved.v1.json",
+  "title": "StockReserved",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "items"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["product_id", "quantity"],
+        "properties": {
+          "product_id": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

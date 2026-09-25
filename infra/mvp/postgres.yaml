@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: observa-postgres-init
+  namespace: observa-spike0
+data:
+  01-databases.sql: |
+    CREATE DATABASE orders;
+    CREATE DATABASE payments;
+    CREATE DATABASE inventory;
+    CREATE DATABASE notifications;
+    CREATE DATABASE harness;
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: observa-spike0
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels: {app: postgres}
+  template:
+    metadata:
+      labels: {app: postgres}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        fsGroup: 70
+      containers:
+        - name: postgres
+          image: postgres:16-alpine@sha256:3c5c8892d184f738f4fe282d14ddaa613a38f00f4189d2d94725ebe6f2909ddb
+          env:
+            - {name: POSTGRES_USER, value: observa}
+            - {name: POSTGRES_DB, value: postgres}
+            - {name: PGDATA, value: /var/lib/postgresql/data/pgdata}
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: {name: observa-postgres, key: password}
+          ports:
+            - {name: postgres, containerPort: 5432}
+          startupProbe:
+            exec: {command: [pg_isready, -U, observa, -d, postgres]}
+            failureThreshold: 60
+            periodSeconds: 5
+          readinessProbe:
+            exec: {command: [pg_isready, -U, observa, -d, postgres]}
+            periodSeconds: 10
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {cpu: 500m, memory: 768Mi}
+          volumeMounts:
+            - {name: data, mountPath: /var/lib/postgresql/data}
+            - {name: init, mountPath: /docker-entrypoint-initdb.d, readOnly: true}
+      volumes:
+        - name: init
+          configMap: {name: observa-postgres-init}
+  volumeClaimTemplates:
+    - metadata: {name: data}
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 1Gi}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: observa-spike0
+spec:
+  selector: {app: postgres}
+  ports:
+    - {name: postgres, port: 5432, targetPort: postgres}

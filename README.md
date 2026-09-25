@@ -1,6 +1,24 @@
-# Observa — Spike 0
+# Observa
 
-Probes Python → Kafka → Node → Kafka → Python em Kubernetes local, com OpenTelemetry e navegação Grafana trace ↔ logs. Este incremento não migra os serviços do OrderFlow.
+Jornada local de pedidos com Order (Python), Payment (Node), Inventory (Node) e Notification (Python), Kafka, Postgres e observabilidade no Grafana. O OrderFlow é usado somente como referência de contrato e permanece somente leitura.
+
+## MVP local
+
+```powershell
+./scripts/install-tools.ps1
+./scripts/mvp.ps1 up
+./scripts/mvp.ps1 status
+./scripts/mvp.ps1 contract
+./scripts/mvp.ps1 demo
+./scripts/mvp.ps1 recovery
+./scripts/mvp.ps1 down
+```
+
+O [runbook do MVP](docs/product/mvp-runbook.md) descreve os cenários, as evidências em `.local/evidence`, o dashboard e o diagnóstico métrica → trace → logs. O [relatório de validação](docs/product/mvp-report.md) registra os resultados e os limites. `down` destrói os dados sintéticos do cluster local.
+
+## Spike 0
+
+Os probes Python → Kafka → Node → Kafka → Python validaram Kubernetes local, OpenTelemetry e navegação Grafana trace ↔ logs antes dos serviços de domínio.
 
 ## Pré-requisitos
 
@@ -38,7 +56,7 @@ O sucesso da API não certifica os cliques de UI. O verificador também não afi
 - Init container cria/persiste contexto e termina; outro container lê o carrier e publica. O volume temporário não é uma outbox transacional.
 - Duas réplicas Node dividem partições. O commit ocorre após confirmação do publish; entrega pelo menos uma vez permite duplicatas em falhas posteriores ao publish.
 - Ordenação é comprovada separadamente por tópico/partição, sem promessa global ou exatamente uma vez.
-- O cluster single-node/single-broker não oferece alta disponibilidade. Não há exposição pública, serviços de domínio, DLT, SLO ou HPA.
+- O cluster single-node/single-broker não oferece alta disponibilidade. O Spike não tinha serviços de domínio, estacionamento, SLO ou HPA; o MVP os acrescenta conforme o runbook, exceto SLO e HPA.
 
 ## Estrutura
 
@@ -48,4 +66,4 @@ O sucesso da API não certifica os cliques de UI. O verificador também não afi
 - `tests/evidence/`: auditoria offline de respostas Tempo/Loki.
 - `docs/product/`: escopo, handoff e relatório do spike.
 
-Consulte `docs/product/spike-0-report.md` para distinguir o que foi implementado do que foi efetivamente verificado.
+Consulte `docs/product/spike-0-report.md` para a evidência histórica do Spike 0 e o runbook do MVP para a jornada atual.

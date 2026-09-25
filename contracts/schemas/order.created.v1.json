@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/order.created.v1.json",
+  "title": "OrderCreated",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "customer_id", "items", "total_amount"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "customer_id": { "type": "string", "format": "uuid" },
+    "total_amount": { "type": "number" },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["product_id", "quantity", "unit_price"],
+        "properties": {
+          "product_id": { "type": "string", "format": "uuid" },
+          "quantity": { "type": "integer", "minimum": 1 },
+          "unit_price": { "type": "number" }
+        }
+      }
+    },
+    "simulate": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "payment": { "type": "string", "enum": ["approve", "reject", "random"] },
+        "stock": { "type": "string", "enum": ["reserve", "unavailable", "catalog"] }
+      }
+    }
+  }
+}

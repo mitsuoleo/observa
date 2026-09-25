@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "observa-messaging"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+  "confluent-kafka==2.12.0",
+  "opentelemetry-api==1.36.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest==9.0.3", "pytest-cov==6.2.1", "ruff==0.13.2", "opentelemetry-sdk==1.36.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["observa_messaging*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "--cov=observa_messaging --cov-report=term-missing --cov-fail-under=80"
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

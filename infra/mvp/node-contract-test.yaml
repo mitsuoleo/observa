@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: observa-us002-node-contract
+  namespace: observa-spike0
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 180
+  template:
+    spec:
+      automountServiceAccountToken: false
+      restartPolicy: Never
+      containers:
+        - name: contract
+          image: observa-messaging-node-test:us002
+          imagePullPolicy: Never
+          env:
+            - {name: OBSERVA_TEST_KAFKA, value: kafka:9092}
+            - {name: HOME, value: /tmp}
+          command: [npx, vitest, run, test/kafka.integration.test.ts]
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {cpu: 300m, memory: 384Mi}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}

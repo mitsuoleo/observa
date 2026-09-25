@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/order.failed.v1.json",
+  "title": "OrderFailed",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "status", "reason"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "FAILED" },
+    "reason": { "type": "string" }
+  }
+}

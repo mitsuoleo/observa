@@ -13,3 +13,8 @@ scrape_configs:
       - names: ['probe-node.observa-spike0.svc.cluster.local', 'probe-python-sink.observa-spike0.svc.cluster.local']
         type: A
         port: 8000
+  - job_name: domain
+    dns_sd_configs:
+      - names: ['order.observa-spike0.svc.cluster.local', 'payment.observa-spike0.svc.cluster.local', 'inventory.observa-spike0.svc.cluster.local', 'notification.observa-spike0.svc.cluster.local']
+        type: A
+        port: 8000

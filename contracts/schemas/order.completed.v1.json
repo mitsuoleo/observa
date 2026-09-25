@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://orderflow.local/schemas/order.completed.v1.json",
+  "title": "OrderCompleted",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["order_id", "status"],
+  "properties": {
+    "order_id": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "CONFIRMED" }
+  }
+}

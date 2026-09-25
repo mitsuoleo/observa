@@ -1,6 +1,6 @@
 # PRD — Observa
 
-**Status:** pronto para iniciar o Spike 0; MVP condicionado aos resultados do spike  
+**Status:** Spike 0 validado; MVP local implementado e verificado conforme o [relatório](mvp-report.md).
 **Data:** 22 de setembro de 2026  
 **Projeto-base:** OrderFlow, somente leitura  
 **Produto:** repositório independente Observa
@@ -171,6 +171,8 @@ Está concluído quando:
 10. Uma pessoa que não implementou o sistema reproduz o cenário e o diagnóstico apenas com o repositório.
 
 ## 11. Rastreabilidade do MVP
+
+As provas de cada RF/RNF, comandos e limites estão na [matriz de evidências do MVP](mvp-report.md#rastreabilidade-dos-requisitos).
 
 | Requisito | Objetivos | Backlog | Evidência de aceite |
 |---|---|---|---|
