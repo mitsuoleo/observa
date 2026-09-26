@@ -8,6 +8,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit --noUnusedLocals --noUnusedParameters",
     "test": "vitest run",
+    "gateway:demo": "npm run build && node dist/gateway-demo.js",
     "start": "node dist/main.js"
   },
   "dependencies": {

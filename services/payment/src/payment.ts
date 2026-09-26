@@ -5,6 +5,8 @@ export type QueryResult = { rowCount: number | null; rows: Record<string, unknow
 export type DbClient = { query(sql: string, params?: unknown[]): Promise<QueryResult>; release(): void };
 export type Db = { connect(): Promise<DbClient> };
 type Payment = { id: string; amount: string | number; status: string };
+type Authorization = "APPROVED" | "REJECTED";
+export type AuthorizePayment = (orderId: string, desired: Authorization) => Promise<Authorization>;
 
 export function decidePayment(
   simulate: unknown,
@@ -39,7 +41,7 @@ async function enqueue(client: DbClient, outgoing: DomainEvent, carrier: Carrier
   );
 }
 
-async function onCreated(client: DbClient, event: DomainEvent, carrier: Carrier, approveRate: number): Promise<void> {
+async function onCreated(client: DbClient, event: DomainEvent, carrier: Carrier, approveRate: number, authorize: AuthorizePayment): Promise<void> {
   const orderId = orderIdOf(event);
   const payload = event.payload;
   if (!Array.isArray(payload.items) || payload.items.length === 0 ||
@@ -56,7 +58,7 @@ async function onCreated(client: DbClient, event: DomainEvent, carrier: Carrier,
   if (simulate.stock !== undefined && !["catalog", "reserve", "unavailable"].includes(simulate.stock as string)) {
     throw new InvalidRecord("invalid stock mode");
   }
-  const status = decidePayment(simulate.payment, approveRate);
+  const status = await authorize(orderId, decidePayment(simulate.payment, approveRate));
   const paymentId = randomUUID();
   await client.query(
     `INSERT INTO payments (id, order_id, status, amount) VALUES ($1, $2, $3, $4)`,
@@ -89,6 +91,7 @@ async function onRefund(client: DbClient, event: DomainEvent, carrier: Carrier):
 export async function handlePayment(
   pool: Db, event: DomainEvent, carrier: Carrier,
   approveRate = 0.8,
+  authorize: AuthorizePayment = async (_orderId, desired) => desired,
 ): Promise<void> {
   if (event.event_type !== "order.created" && event.event_type !== "payment.refund.requested") return;
   const client = await pool.connect();
@@ -99,7 +102,7 @@ export async function handlePayment(
        ON CONFLICT (event_id) DO NOTHING RETURNING event_id`, [event.event_id],
     );
     if (processed.rowCount) {
-      if (event.event_type === "order.created") await onCreated(client, event, carrier, approveRate);
+      if (event.event_type === "order.created") await onCreated(client, event, carrier, approveRate, authorize);
       else await onRefund(client, event, carrier);
     }
     await client.query("COMMIT");

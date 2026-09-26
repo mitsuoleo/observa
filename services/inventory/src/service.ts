@@ -59,10 +59,35 @@ export async function handlePaymentApproved(pool: Pool, event: DomainEvent, pare
 }
 
 export async function relayOutbox(pool: Pool, publish: (event: DomainEvent, carrier: Carrier) => Promise<void>): Promise<number> {
-  const rows = await pool.query("SELECT event_id,payload,carrier FROM outbox_events WHERE published_at IS NULL ORDER BY id LIMIT 50");
-  for (const row of rows.rows) {
-    await publish(row.payload as DomainEvent, row.carrier as Carrier);
-    await pool.query("UPDATE outbox_events SET published_at=now() WHERE event_id=$1 AND published_at IS NULL", [row.event_id]);
+  const client = await pool.connect();
+  let published = 0;
+  try {
+    for (let batch = 0; batch < 50; batch++) {
+      await client.query("BEGIN");
+      try {
+        const rows = await client.query(
+          "SELECT event_id,payload,carrier FROM outbox_events WHERE published_at IS NULL ORDER BY id LIMIT 1 FOR UPDATE SKIP LOCKED",
+        );
+        const row = rows.rows[0];
+        if (!row) {
+          await client.query("COMMIT");
+          break;
+        }
+        await publish(row.payload as DomainEvent, row.carrier as Carrier);
+        const marker = await client.query(
+          "UPDATE outbox_events SET published_at=now() WHERE event_id=$1 AND published_at IS NULL",
+          [row.event_id],
+        );
+        if (marker.rowCount !== 1) throw new Error("outbox event lost its publication claim");
+        await client.query("COMMIT");
+        published++;
+      } catch (error) {
+        await client.query("ROLLBACK");
+        throw error;
+      }
+    }
+  } finally {
+    client.release();
   }
-  return rows.rowCount ?? 0;
+  return published;
 }

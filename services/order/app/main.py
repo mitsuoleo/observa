@@ -6,6 +6,7 @@ import os
 import threading
 import time
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from uuid import UUID
 
 from confluent_kafka import Consumer, Producer
@@ -47,18 +48,31 @@ def log(event: str, **fields) -> None:
     print(json.dumps(record, default=str), flush=True)
 
 
+def pending_outbox_query():
+    """Claim one unpublished event without waiting for another relay's claim."""
+    return (select(OutboxEvent).where(OutboxEvent.published_at.is_(None))
+            .order_by(OutboxEvent.id).limit(1).with_for_update(skip_locked=True))
+
+
+async def relay_pending(session_factory, publisher: KafkaPublisher) -> bool:
+    """Hold the claim until Kafka acknowledges and the publication marker commits."""
+    async with session_factory() as session:
+        async with session.begin():
+            row = (await session.execute(pending_outbox_query())).scalar_one_or_none()
+            if row is None:
+                return False
+            await asyncio.to_thread(publisher.publish, row.payload, row.carrier)
+            row.published_at = datetime.now(timezone.utc)
+            order_id = row.payload["correlation_id"]
+            event_id = row.event_id
+    log("order_event_published", order_id=order_id, event_id=str(event_id))
+    return True
+
+
 async def relay_loop(publisher: KafkaPublisher) -> None:
     while not stop_event.is_set():
         try:
-            async with SessionLocal() as session:
-                row = (await session.execute(select(OutboxEvent).where(OutboxEvent.published_at.is_(None))
-                                             .order_by(OutboxEvent.id).limit(1))).scalar_one_or_none()
-                if row is not None:
-                    await asyncio.to_thread(publisher.publish, row.payload, row.carrier)
-                    from datetime import datetime, timezone
-                    row.published_at = datetime.now(timezone.utc)
-                    await session.commit()
-                    log("order_event_published", order_id=row.payload["correlation_id"], event_id=str(row.event_id))
+            await relay_pending(SessionLocal, publisher)
         except Exception as exc:
             ERRORS.labels("order", "relay").inc()
             log("order_relay_error", level="ERROR", error=str(exc))
