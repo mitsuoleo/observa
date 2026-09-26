@@ -197,6 +197,9 @@ spec:
         - name: config
           mountPath: /etc/prometheus
           readOnly: true
+        - name: rules
+          mountPath: /etc/prometheus/rules
+          readOnly: true
         - name: data
           mountPath: /prometheus
         args:
@@ -209,6 +212,9 @@ spec:
       - name: config
         configMap:
           name: prometheus-config
+      - name: rules
+        configMap:
+          name: prometheus-operations-rules
       - name: data
         persistentVolumeClaim:
           claimName: prometheus-data

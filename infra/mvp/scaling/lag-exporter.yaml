@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: {name: lag-exporter}
+spec:
+  replicas: 1
+  selector: {matchLabels: {app: lag-exporter}}
+  template:
+    metadata: {labels: {app: lag-exporter}}
+    spec:
+      automountServiceAccountToken: false
+      securityContext: {runAsNonRoot: true, runAsUser: 10001}
+      containers:
+        - name: lag-exporter
+          image: observa-probe-python:spike0
+          imagePullPolicy: Never
+          command: [python, -u, /opt/lag-exporter/lag_exporter.py]
+          env: [{name: KAFKA_BOOTSTRAP_SERVERS, value: 'kafka:9092'}]
+          ports: [{name: metrics, containerPort: 9108}]
+          startupProbe: {httpGet: {path: /health, port: metrics}, failureThreshold: 12, periodSeconds: 5}
+          readinessProbe: {httpGet: {path: /health, port: metrics}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /health, port: metrics}, periodSeconds: 15}
+          resources:
+            requests: {cpu: 25m, memory: 64Mi}
+            limits: {cpu: 150m, memory: 192Mi}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+          volumeMounts: [{name: script, mountPath: /opt/lag-exporter, readOnly: true}]
+      volumes: [{name: script, configMap: {name: lag-exporter-script}}]
+---
+apiVersion: v1
+kind: Service
+metadata: {name: lag-exporter}
+spec:
+  selector: {app: lag-exporter}
+  ports: [{name: metrics, port: 9108, targetPort: metrics}]

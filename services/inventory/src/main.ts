@@ -28,6 +28,7 @@ const server = createServer((req, res) => {
       "# TYPE inventory_consumed_total counter", `inventory_consumed_total ${consumed}`,
       "# TYPE inventory_published_total counter", `inventory_published_total ${published}`,
       "# TYPE inventory_errors_total counter", `inventory_errors_total ${errors}`,
+      "# TYPE observa_errors_total counter", `observa_errors_total{service="inventory",operation="runtime"} ${errors}`,
       "# TYPE inventory_processing_duration_seconds_sum counter", `inventory_processing_duration_seconds_sum ${durationSeconds}`,
     ].join("\n") + "\n");
   } else { res.writeHead(404); res.end(); }

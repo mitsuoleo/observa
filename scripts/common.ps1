@@ -37,6 +37,16 @@ function Invoke-Kube {
     Invoke-Checked 'kubectl' (@('--kubeconfig',(Join-Path $script:Local 'kubeconfig'),'--context', $script:Profile, '--namespace', $script:Namespace) + $Arguments) $Seconds
 }
 
+function Assert-DeploymentReady {
+    param([string]$Name)
+    $deployment = Invoke-Kube @('get', "deployment/$Name", '-o', 'json') 30 | ConvertFrom-Json
+    $desired = [int]$deployment.spec.replicas
+    $ready = [int]$deployment.status.readyReplicas
+    if ($desired -lt 1 -or $ready -ne $desired -or [int]$deployment.status.updatedReplicas -ne $desired) {
+        throw "$Name deployment is not fully ready: desired=$desired updated=$($deployment.status.updatedReplicas) ready=$ready"
+    }
+}
+
 function Save-Json {
     param($Value, [string]$Path)
     $Value | ConvertTo-Json -Depth 40 | Set-Content -LiteralPath $Path -Encoding utf8

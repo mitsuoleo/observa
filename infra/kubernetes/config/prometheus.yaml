@@ -1,6 +1,8 @@
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+rule_files:
+  - /etc/prometheus/rules/rules.yaml
 scrape_configs:
   - job_name: prometheus
     static_configs:
@@ -18,3 +20,6 @@ scrape_configs:
       - names: ['order.observa-spike0.svc.cluster.local', 'payment.observa-spike0.svc.cluster.local', 'inventory.observa-spike0.svc.cluster.local', 'notification.observa-spike0.svc.cluster.local']
         type: A
         port: 8000
+  - job_name: consumer-lag
+    static_configs:
+      - targets: ['lag-exporter.observa-spike0.svc.cluster.local:9108']

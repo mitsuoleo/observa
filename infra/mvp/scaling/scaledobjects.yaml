@@ -1,0 +1,75 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata: {name: order-lag}
+spec:
+  scaleTargetRef: {name: order}
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: order
+      behavior:
+        scaleDown: {stabilizationWindowSeconds: 60}
+  triggers:
+    - type: kafka
+      metadata: {bootstrapServers: 'kafka.observa-spike0.svc.cluster.local:9092', consumerGroup: 'observa.order', topic: 'order.events.v1', lagThreshold: '5', offsetResetPolicy: 'earliest'}
+    - type: cpu
+      metricType: Utilization
+      metadata: {value: '70'}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata: {name: payment-lag}
+spec:
+  scaleTargetRef: {name: payment}
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: payment
+      behavior:
+        scaleDown: {stabilizationWindowSeconds: 60}
+  triggers:
+    - type: kafka
+      metadata: {bootstrapServers: 'kafka.observa-spike0.svc.cluster.local:9092', consumerGroup: 'observa.payment', topic: 'order.events.v1', lagThreshold: '5', offsetResetPolicy: 'earliest'}
+    - type: cpu
+      metricType: Utilization
+      metadata: {value: '70'}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata: {name: inventory-lag}
+spec:
+  scaleTargetRef: {name: inventory}
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: inventory
+      behavior:
+        scaleDown: {stabilizationWindowSeconds: 60}
+  triggers:
+    - type: kafka
+      metadata: {bootstrapServers: 'kafka.observa-spike0.svc.cluster.local:9092', consumerGroup: 'observa.inventory', topic: 'order.events.v1', lagThreshold: '5', offsetResetPolicy: 'earliest'}
+    - type: cpu
+      metricType: Utilization
+      metadata: {value: '70'}
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata: {name: notification-lag}
+spec:
+  scaleTargetRef: {name: notification}
+  minReplicaCount: 1
+  maxReplicaCount: 2
+  advanced:
+    horizontalPodAutoscalerConfig:
+      name: notification
+      behavior:
+        scaleDown: {stabilizationWindowSeconds: 60}
+  triggers:
+    - type: kafka
+      metadata: {bootstrapServers: 'kafka.observa-spike0.svc.cluster.local:9092', consumerGroup: 'observa.notification', topic: 'order.events.v1', lagThreshold: '5', offsetResetPolicy: 'earliest'}
+    - type: cpu
+      metricType: Utilization
+      metadata: {value: '70'}

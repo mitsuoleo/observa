@@ -68,8 +68,7 @@ function Invoke-Up {
 function Invoke-Status {
     Invoke-Kube @('get','pods,services,pvc','-o','wide') 30 | Write-Host
     foreach($name in @('order','payment','inventory','notification','prometheus','tempo','loki','grafana')){
-        $ready=(Invoke-Kube @('get',"deployment/$name",'-o','jsonpath={.status.readyReplicas}') 30).Trim()
-        if($ready -ne '1'){throw "$name is not ready"}
+        Assert-DeploymentReady $name
     }
     foreach($name in @('postgres','kafka')){
         $ready=(Invoke-Kube @('get',"statefulset/$name",'-o','jsonpath={.status.readyReplicas}') 30).Trim()

@@ -1,0 +1,23 @@
+groups:
+  - name: observa-operations-experimental
+    rules:
+      - alert: ObservaDomainTargetDown
+        expr: up{job="domain"} == 0
+        for: 2m
+        labels:
+          severity: warning
+          maturity: experimental
+        annotations:
+          summary: 'Domain metrics target is unavailable'
+          description: 'Inspect the missing service and follow the target-down procedure in docs/product/operations-runbook.md.'
+          runbook: 'docs/product/operations-runbook.md#domain-target-down'
+      - alert: ObservaProcessingErrors
+        expr: sum by (service) (increase(observa_errors_total{job="domain"}[5m])) > 0
+        for: 1m
+        labels:
+          severity: warning
+          maturity: experimental
+        annotations:
+          summary: 'Processing errors observed in {{ $labels.service }}'
+          description: 'Inspect logs, trace and retry or parked records using docs/product/operations-runbook.md.'
+          runbook: 'docs/product/operations-runbook.md#processing-errors'

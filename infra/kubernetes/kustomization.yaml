@@ -16,6 +16,8 @@ configMapGenerator:
     files: [config.yaml=config/loki.yaml]
   - name: prometheus-config
     files: [prometheus.yml=config/prometheus.yaml]
+  - name: prometheus-operations-rules
+    files: [rules.yaml=config/operations-rules.yaml]
   - name: grafana-datasources
     files: [datasources.yaml=config/grafana.yaml]
   - name: grafana-dashboard-provider
