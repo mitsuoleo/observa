@@ -163,7 +163,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** validar testes, builds, manifests e vulnerabilidades automaticamente.
 - **Dependência:** estrutura de build estabilizada.
 - **Aceite resumido:** CI executa lint/typecheck/testes, build de imagens, validação de manifests e scan sem remover controles para ficar verde.
-- **Estado em 26/09/2026:** repositório público e primeira execução remota existentes; essa execução falhou na instalação do Gitleaks, conforme o log fornecido. O caminho do módulo e o cache Go foram corrigidos localmente; falta uma execução remota verde com os checks preservados. Consulte o [relatório pós-MVP](post-mvp-report.md).
+- **Estado em 26/09/2026:** a primeira execução falhou na instalação do Gitleaks, conforme o log fornecido. O caminho do módulo foi corrigido e o cache Go desativado; a [segunda execução pública](https://github.com/mitsuoleo/observa/actions/runs/36264249324) terminou com sucesso no commit `5d3267e`, com o check completo preservado. Consulte o [relatório pós-MVP](post-mvp-report.md).
 
 ### US-107 — Tornar a demonstração pública avaliável
 
@@ -174,7 +174,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** publicar artefatos brutos, IDs de pedidos, credenciais, SLO de produção ou nova interface web.
 - **Critérios de aceite:** avaliador encontra pré-requisitos, comandos, percurso métrica → trace → logs → trace e limites no README; executa os três cenários a partir de checkout limpo; links e comandos funcionam; a síntese pública aponta para evidência reproduzível sem dados locais sensíveis.
 - **Dependências:** US-103 com evidência operacional registrada e US-106 com estado remoto declarado corretamente; execução completa por terceiro requer Docker e recursos locais adequados.
-- **Prontidão:** **Validada localmente em checkout limpo**. Instalação, `up`, `status`, `contract`, `demo`, `recovery` e percurso Grafana passaram; o refresh automático foi documentado. A publicação desta revisão e a CI verde seguem pendentes.
+- **Prontidão:** **Publicada e validada localmente em checkout limpo** no commit `5d3267e`. Instalação, `up`, `status`, `contract`, `demo`, `recovery` e percurso Grafana passaram; o refresh automático foi documentado. A CI pública desse commit terminou verde. A avaliação por outra pessoa continua não observada.
 - **Verificações:** leitura independente do roteiro, execução dos comandos, inspeção visual Grafana, revisão de links, diff e scan de segredos.
 - **Incertezas:** disponibilidade do ambiente de um avaliador externo; o teste local em checkout separado não substitui essa validação quando ela não puder ser feita.
 

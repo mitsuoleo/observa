@@ -1,6 +1,6 @@
 # Implementation Brief — fechar US-106 e entregar US-107
 
-**Estado em 26/09/2026:** o MVP e os incrementos locais têm evidência; a primeira CI pública falhou, a correção está no checkout local e ainda precisa de execução remota verde. O ensaio local de `ObservaDomainTargetDown` passou. Consulte o [relatório pós-MVP](post-mvp-report.md).
+**Estado em 26/09/2026:** o MVP e os incrementos locais têm evidência; depois da falha inicial, a [segunda CI pública](https://github.com/mitsuoleo/observa/actions/runs/36264249324) passou no commit `5d3267e`. O ensaio local de `ObservaDomainTargetDown` e a reprodução em checkout limpo passaram. Consulte o [relatório pós-MVP](post-mvp-report.md).
 
 ## Objetivo da próxima entrega
 
@@ -8,7 +8,7 @@ Fazer a CI pública validar o mesmo conjunto de checks já executado localmente 
 
 ## Escopo e sequência
 
-1. **US-106:** o log fornecido da [execução falha](https://github.com/mitsuoleo/observa/actions/runs/36258516353) confirma `version constraints conflict` na etapa **Install Gitleaks**: o caminho solicitado difere daquele declarado pelo módulo v8.30.1. O patch local corrige esse caminho e desliga o cache Go, pois o repositório não tem `go.mod` ou `go.sum`. Repetir CI após envio aprovado; caso surja outra falha, diagnosticar a etapa e corrigir somente a causa, sem remover checks.
+1. **US-106:** o log fornecido da [execução falha](https://github.com/mitsuoleo/observa/actions/runs/36258516353) confirma `version constraints conflict` na etapa **Install Gitleaks**: o caminho solicitado difere daquele declarado pelo módulo v8.30.1. O patch corrigiu esse caminho e desligou o cache Go, pois o repositório não tem `go.mod` ou `go.sum`. A [execução seguinte](https://github.com/mitsuoleo/observa/actions/runs/36264249324) passou sem remover checks.
 2. **US-103:** manter no relatório o baseline 30/30, o alerta Payment disparado e resolvido, o `demo` pós-recuperação e a carga 60/60 a 5 pedidos/s. Preservar a tentativa falha a 12 pedidos/s como limite observado. O script `alert-verify.ps1` permite repetir o ensaio com restauração automática.
 3. **US-107:** o checkout separado do commit local `ff81956` passou em instalação, `up`, `status`, `contract`, `demo`, `recovery` e Grafana métrica → trace → logs → trace. O passo implícito de pausar o refresh foi documentado. Publicar só contagens, estados, horários e limites; artefatos brutos continuam em `.local/`.
 
@@ -21,7 +21,7 @@ Fazer a CI pública validar o mesmo conjunto de checks já executado localmente 
 
 ## Aceite e verificações
 
-- A CI pública termina verde para o commit entregue, mantendo todas as fases do `check.ps1`; o link da execução entra no relatório.
+- A CI pública terminou verde para o commit `5d3267e`, mantendo todas as fases do `check.ps1`; o link da execução consta no relatório.
 - O check local completo, o diff final e a varredura de segredos são revisados antes de qualquer push.
 - O ensaio do alerta mostra `firing`, serviço pronto e alerta resolvido; `demo` mostra `CONFIRMED`, `FAILED` e `CANCELLED` sem efeitos duplicados nos pedidos verificados.
 - Um checkout separado encontra no README os pré-requisitos, comandos e links necessários; o percurso Grafana é inspecionado visualmente. Qualquer etapa não executada deve ser marcada como não verificada.

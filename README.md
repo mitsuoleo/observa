@@ -39,6 +39,8 @@ As credenciais locais geradas estão em `.local/grafana-secret.json`. IDs de ped
 
 `./scripts/check.ps1` executa build, lint, tipos, testes Node/Python, testes dos relays com PostgreSQL descartável, build das imagens, auditorias de dependências, busca de segredos no histórico e na árvore atual, validação dos manifests e regras Prometheus. Ele requer Docker, Python, `kubectl`, Git e Gitleaks; a [CI](.github/workflows/check.yml) chama o mesmo script sem cluster. `./scripts/check.ps1 -Only manifests` repete uma fase isolada; as opções estão no [runbook pós-MVP](docs/product/post-mvp-runbook.md).
 
+A [CI pública passou no commit `5d3267e`](https://github.com/mitsuoleo/observa/actions/runs/36264249324), com os checks mantidos. A demonstração no cluster e a navegação Grafana foram verificadas separadamente em checkout limpo.
+
 Após `up`, execute o baseline separadamente. Para o alerta, instale primeiro o perfil optativo de escala KEDA; a verificação `relay-db` comprova a concorrência dos relays exigida por `scale-apply`:
 
 ```powershell
