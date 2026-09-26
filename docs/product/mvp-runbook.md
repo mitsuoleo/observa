@@ -47,7 +47,7 @@ Consultas de apoio, com port-forwards próprios para Prometheus (`13090:9090`), 
 
 Se `up` parar, rode `status` e consulte `kubectl --kubeconfig .local/kubeconfig --context observa-spike0 -n observa-spike0 get pods`. Veja `describe pod` e `logs deployment/<serviço>` para a causa. Os serviços anunciam prontidão por HTTP; Kafka, Postgres e serviços de domínio têm uma réplica no MVP. Erros transitórios no processamento mantêm o offset sem confirmação; registros irrecuperavelmente inválidos são publicados em `order.events.v1.parked` antes de confirmar a origem. O contrato e as exclusões de ordem estão em [kafka-contract.md](../architecture/kafka-contract.md).
 
-Este ambiente demonstra cenários locais, não HA, HPA, SLO, entrega exatamente uma vez ponta a ponta ou retry automático do tópico estacionado. O relay de outbox ainda é seguro apenas com uma réplica por serviço. O dashboard apresenta amostras de um ambiente de demonstração; não há meta de latência aprovada.
+O perfil básico demonstra cenários locais com uma réplica por serviço. Ele não oferece HA, entrega exatamente uma vez ponta a ponta ou retry automático do tópico estacionado. Os relays já suportam reivindicação transacional entre réplicas; o [runbook pós-MVP](post-mvp-runbook.md) descreve o HPA optativo e seus limites. O dashboard apresenta amostras de um ambiente de demonstração; não há meta de latência aprovada.
 
 ## Encerramento
 

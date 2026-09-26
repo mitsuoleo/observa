@@ -123,6 +123,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Escopo:** claim/lock transacional, lease ou relay dedicado; testes de concorrência e recuperação.
 - **Dependência:** baseline do MVP.
 - **Aceite resumido:** duas réplicas publicam cada linha como um único efeito lógico sob falhas controladas; duplicatas residuais continuam seguras.
+- **Estado em 25/09/2026:** implementada e validada localmente com dois claimers PostgreSQL por runtime e carga em duas réplicas; evidências no [relatório pós-MVP](post-mvp-report.md).
 
 ### US-102 — HPA por CPU e lag
 
@@ -130,6 +131,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** demonstrar ajuste de capacidade baseado em sinal real.
 - **Dependências:** US-101 e métricas de lag confiáveis.
 - **Aceite resumido:** carga reproduzível provoca escala e retorno, sem quebrar partições, ordem declarada ou idempotência.
+- **Estado em 25/09/2026:** validada localmente. KEDA v2.21.0 gera HPA por CPU e lag Kafka para os quatro grupos. Um backlog controlado de Payment acionou escala para duas réplicas por métrica externa; 300 pedidos terminaram, as réplicas retornaram a uma e os efeitos persistidos foram únicos. Evidência no [relatório pós-MVP](post-mvp-report.md).
 
 ### US-103 — SLOs e alertas
 
@@ -137,6 +139,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** transformar baseline em objetivos mensuráveis e alerta acionável.
 - **Dependência:** medições do MVP.
 - **Aceite resumido:** SLI e orçamento de erro têm justificativa; alerta leva a runbook testado.
+- **Estado em 25/09/2026:** baseline e alertas experimentais implementados; regras testadas, sem disparo real nem SLO aprovado. Consulte o [runbook operacional](operations-runbook.md).
 
 ### US-104 — Gateway instável, retry e circuit breaker
 
@@ -144,6 +147,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** demonstrar falha de dependência síncrona controlada.
 - **Dependência:** fluxo de pagamento estável.
 - **Aceite resumido:** falha configurável exibe transições do breaker e retry com backoff sem tempestade ou cobrança duplicada.
+- **Estado em 25/09/2026:** gateway sintético validado por demo determinístico e injeção de falha no cluster; pagamentos únicos confirmados. Não há cobrança externa.
 
 ### US-105 — Chaos test e recuperação ampliada
 
@@ -151,6 +155,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** verificar broker, consumidores e dependências sob falhas além de restart simples.
 - **Dependências:** ambiente estável e observabilidade completa.
 - **Aceite resumido:** experimentos têm hipótese, blast radius, condição de parada e evidência de recuperação.
+- **Estado em 25/09/2026:** experimentos locais de recriação de Payment e Kafka passaram com evidência de recuperação após a falha; não cobrem disponibilidade contínua durante a queda do broker.
 
 ### US-106 — CI de imagens e segurança
 
@@ -158,6 +163,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** validar testes, builds, manifests e vulnerabilidades automaticamente.
 - **Dependência:** estrutura de build estabilizada.
 - **Aceite resumido:** CI executa lint/typecheck/testes, build de imagens, validação de manifests e scan sem remover controles para ficar verde.
+- **Estado em 25/09/2026:** comando local completo validado por fases e workflow versionado; execução remota da CI pendente até existir remoto Git.
 
 ## Critério de prontidão do MVP
 
