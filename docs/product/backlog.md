@@ -139,7 +139,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** transformar baseline em objetivos mensuráveis e alerta acionável.
 - **Dependência:** medições do MVP.
 - **Aceite resumido:** SLI e orçamento de erro têm justificativa; alerta leva a runbook testado.
-- **Estado em 25/09/2026:** baseline e alertas experimentais implementados; regras testadas, sem disparo real nem SLO aprovado. Consulte o [runbook operacional](operations-runbook.md).
+- **Estado em 26/09/2026:** baseline local de 30/30 pedidos e disparo/resolução real de `ObservaDomainTargetDown` para Payment verificados; `ObservaProcessingErrors` tem teste de regra, sem disparo real. A meta de 5 s continua hipótese experimental, sem SLO aprovado. Consulte o [relatório pós-MVP](post-mvp-report.md) e o [runbook operacional](operations-runbook.md).
 
 ### US-104 — Gateway instável, retry e circuit breaker
 
@@ -163,7 +163,20 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** validar testes, builds, manifests e vulnerabilidades automaticamente.
 - **Dependência:** estrutura de build estabilizada.
 - **Aceite resumido:** CI executa lint/typecheck/testes, build de imagens, validação de manifests e scan sem remover controles para ficar verde.
-- **Estado em 25/09/2026:** comando local completo validado por fases e workflow versionado; execução remota da CI pendente até existir remoto Git.
+- **Estado em 26/09/2026:** repositório público e primeira execução remota existentes; essa execução falhou antes de validar o check completo. O caminho de instalação do Gitleaks e o cache Go foram corrigidos localmente; falta uma execução remota verde, com log da etapa e checks preservados. Consulte o [relatório pós-MVP](post-mvp-report.md).
+
+### US-107 — Tornar a demonstração pública avaliável
+
+- **Tipo:** experiência de avaliação e documentação.
+- **Objetivo e valor:** permitir que um terceiro entenda o que foi comprovado e reproduza a jornada sem instruções ocultas.
+- **Relacionamentos:** OBJ-003, OBJ-004; RF-008; US-103 e US-106.
+- **Escopo:** README orientado à demonstração; síntese pública sanitizada das evidências operacionais; percurso Grafana; estado real da CI; revisão por checkout limpo.
+- **Fora do escopo:** publicar artefatos brutos, IDs de pedidos, credenciais, SLO de produção ou nova interface web.
+- **Critérios de aceite:** avaliador encontra pré-requisitos, comandos, percurso métrica → trace → logs → trace e limites no README; executa os três cenários a partir de checkout limpo; links e comandos funcionam; a síntese pública aponta para evidência reproduzível sem dados locais sensíveis.
+- **Dependências:** US-103 com evidência operacional registrada e US-106 com estado remoto declarado corretamente; execução completa por terceiro requer Docker e recursos locais adequados.
+- **Prontidão:** **Em andamento**. README e relatório foram atualizados; falta validar a experiência em checkout limpo e registrar CI verde.
+- **Verificações:** leitura independente do roteiro, execução dos comandos, inspeção visual Grafana, revisão de links, diff e scan de segredos.
+- **Incertezas:** disponibilidade do ambiente de um avaliador externo; o teste local em checkout separado não substitui essa validação quando ela não puder ser feita.
 
 ## Critério de prontidão do MVP
 

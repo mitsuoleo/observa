@@ -1,89 +1,62 @@
 # Observa
 
-Laboratório local de uma jornada de pedidos orientada a eventos. Order (Python), Payment (Node), Inventory (Node) e Notification (Python) usam Kafka e Postgres; métricas, traces e logs são explorados no Grafana. Os pagamentos, estoques e clientes são sintéticos. O OrderFlow é uma referência de contrato somente leitura.
+Laboratório local para demonstrar **como diagnosticar e recuperar uma jornada de pedidos distribuída**. Order (Python), Payment (Node.js), Inventory (Node.js) e Notification (Python) trocam eventos via Kafka, persistem efeitos no Postgres e enviam métricas, traces e logs para uma stack observável no Kubernetes local. Pedidos, pagamentos e estoque são sintéticos; não há cobrança nem notificação externa. O [OrderFlow](docs/product/current-state.md) serviu como referência funcional somente leitura.
 
-## O que demonstrar
+## O que o avaliador consegue verificar
 
-| Cenário | Entrada | Resultado esperado |
+| Cenário | Estado final | Evidência de domínio |
 |---|---|---|
-| Pedido concluído | Pagamento aprovado, estoque reservado | `CONFIRMED`, com `payment.approved`, `stock.reserved` e `order.completed` |
-| Pagamento recusado | Pagamento rejeitado | `FAILED`, com `payment.rejected` e `order.failed` |
-| Estoque indisponível | Pagamento aprovado, estoque indisponível | `CANCELLED`, com compensação `payment.refunded` |
+| Pagamento aprovado e estoque reservado | `CONFIRMED` | `payment.approved`, `stock.reserved`, `order.completed` |
+| Pagamento recusado | `FAILED` | `payment.rejected`, `order.failed` |
+| Estoque indisponível após aprovação | `CANCELLED` | Compensação `payment.refund.requested` → `payment.refunded` |
 
-`demo` executa os três cenários e grava resultados em `.local/evidence/`. `recovery` recria um pod Inventory durante outro pedido e verifica o estado final, a timeline e uma única reserva persistida. A [evidência resumida](docs/portfolio/evidence-2026-09-25.md) contém apenas estados e contagens, sem IDs ou credenciais.
+O comando `demo` executa os três casos. No [dashboard Grafana](http://127.0.0.1:13000/d/observa-mvp), uma amostra de duração leva à trace no Tempo; **Related logs** abre os registros no Loki, e **View trace** retorna à mesma execução. O roteiro exato está no [runbook do MVP](docs/product/mvp-runbook.md#diagnóstico-por-métrica-trace-e-log). A [síntese de evidências atual](docs/portfolio/evidence-2026-09-26.md) e os [relatórios de validação](docs/product/post-mvp-report.md) distinguem resultados observados dos limites dos ensaios.
 
-## Reproduzir o MVP
+## Reproduzir a demonstração
 
-Use Windows com PowerShell 7, Git, Docker Desktop em Linux containers e `kubectl`. Disponibilize ao Docker **4 CPUs, 8 GiB de memória e 20 GiB livres** para imagens e evidências. O instalador usa ferramentas locais em `.tools/`; nenhuma cloud é necessária. Os comandos de `up` e `down` manipulam somente o perfil minikube `observa-spike0`; `down` apaga seus dados sintéticos. Não execute ações do cluster em paralelo.
+Use Windows, PowerShell 7, Git, Docker Desktop com Linux containers e `kubectl`. Reserve **4 CPUs, 8 GiB de memória e 20 GiB livres** para o Docker. O ambiente usa o perfil minikube e namespace dedicados `observa-spike0`; nenhuma cloud é necessária. Em um checkout novo:
 
 ```powershell
+git clone https://github.com/mitsuoleo/observa.git
+cd observa
 ./scripts/install-tools.ps1
 ./scripts/mvp.ps1 up
 ./scripts/mvp.ps1 status
 ./scripts/mvp.ps1 contract
 ./scripts/mvp.ps1 demo
 ./scripts/mvp.ps1 recovery
-./scripts/mvp.ps1 down
 ```
 
-Para checks sem cluster, execute `./scripts/check.ps1`. Ele instala dependências Node via lockfiles, executa build, lint, tipos e testes, roda os testes Python em imagens Docker, verifica os relays em PostgreSQL descartável, constrói as imagens de runtime, audita dependências de produção, procura segredos no histórico Git e na árvore atual e renderiza os manifests offline. Use, por exemplo, `./scripts/check.ps1 -Only manifests` para repetir uma etapa; as opções são `node`, `python`, `relay-db`, `images`, `audit`, `secrets`, `manifests` e `rules`. Exige Docker, Python, `kubectl`, Git e Gitleaks (no `PATH` ou em `.tools/gitleaks/`). Se o host não tiver Node 22, a fase Node usa as imagens de teste fixadas pelo projeto. O [workflow de CI](.github/workflows/check.yml) executa o mesmo comando sem cluster. Os contratos Kafka e o harness Postgres permanecem em `contract`.
-
-O [runbook pós-MVP](docs/product/post-mvp-runbook.md) descreve escala optativa com KEDA por CPU e lag Kafka, baseline, gateway sintético e falhas controladas. O [relatório desta revisão](docs/product/post-mvp-report.md) separa resultados validados dos limites.
-
-O [runbook do MVP](docs/product/mvp-runbook.md) detalha comandos, cenários e limites. O [relatório de validação](docs/product/mvp-report.md) registra as medições históricas. Os arquivos brutos e credenciais ficam em `.local/` e não devem ser versionados.
-
-## Spike 0
-
-Os probes Python → Kafka → Node → Kafka → Python validaram Kubernetes local, OpenTelemetry e navegação Grafana trace ↔ logs antes dos serviços de domínio.
-
-## Spike 0 e pré-requisitos históricos
-
-Windows, PowerShell 7, Git, Docker Desktop em modo Linux e kubectl. O Docker precisa disponibilizar 4 CPUs e 8 GiB; reserve 20 GiB livres para imagens/evidências. Downloads usam registros públicos, sem cloud obrigatória. Nenhum comando altera o PATH global ou o kubeconfig pessoal.
+Para abrir o Grafana, deixe este comando ativo em outro terminal e acesse o dashboard indicado acima:
 
 ```powershell
-./scripts/install-tools.ps1
-./scripts/spike.ps1 preflight
-./scripts/spike.ps1 up
-./scripts/spike.ps1 test -UnitOnly
-./scripts/spike.ps1 test
-./scripts/spike.ps1 status
-./scripts/spike.ps1 down
+kubectl --kubeconfig .local/kubeconfig --context observa-spike0 -n observa-spike0 port-forward service/grafana 13000:3000 --address 127.0.0.1
 ```
 
-`test` executa unitários, integração por Kafka/Tempo/Loki e falha antes do publish/commit. `demo` repete apenas o cenário de propagação/ordenação. `up` constrói/carrega imagens locais e usa exclusivamente o perfil/namespace `observa-spike0`. `down` apaga esse perfil, inclusive dados de demonstração. Evidências em `.local/evidence/` são preservadas. Não execute `up`, `test`, `demo` ou `down` simultaneamente.
+As credenciais locais geradas estão em `.local/grafana-secret.json`. IDs de pedidos e evidências brutas ficam em `.local/evidence/`; ambos os diretórios são ignorados pelo Git. Encerre o port-forward com Ctrl+C. Quando terminar, `./scripts/mvp.ps1 down` remove **somente** o perfil dedicado e seus dados sintéticos. Não execute comandos que alteram o cluster em paralelo.
 
-## Diagnóstico: métrica → trace → log
+## Qualidade e ensaios opcionais
 
-Após `up`, abra um terminal PowerShell na raiz:
+`./scripts/check.ps1` executa build, lint, tipos, testes Node/Python, testes dos relays com PostgreSQL descartável, build das imagens, auditorias de dependências, busca de segredos no histórico e na árvore atual, validação dos manifests e regras Prometheus. Ele requer Docker, Python, `kubectl`, Git e Gitleaks; a [CI](.github/workflows/check.yml) chama o mesmo script sem cluster. `./scripts/check.ps1 -Only manifests` repete uma fase isolada; as opções estão no [runbook pós-MVP](docs/product/post-mvp-runbook.md).
+
+Após `up`, execute o baseline separadamente. Para o alerta, instale primeiro o perfil optativo de escala KEDA; a verificação `relay-db` comprova a concorrência dos relays exigida por `scale-apply`:
 
 ```powershell
-$env:KUBECONFIG = Join-Path (Get-Location) '.local/kubeconfig'
-kubectl --context observa-spike0 -n observa-spike0 port-forward service/grafana 13000:3000 --address 127.0.0.1
+./scripts/operations-baseline.ps1 -Rounds 10
+./scripts/check.ps1 -Only relay-db
+./scripts/scale-apply.ps1 -RelayConcurrencyVerified
+./scripts/alert-verify.ps1 -Target payment
 ```
 
-Abra [o dashboard do MVP](http://127.0.0.1:13000/d/observa-mvp). As credenciais locais geradas estão em `.local/grafana-secret.json` (não versionado). Após `demo`, escolha os últimos 15 minutos e observe eventos, erros, duração e efeitos de negócio. Abra um exemplar de duração do Order para seguir à trace no Tempo; de lá, abra **Related logs** no Loki e use **View trace** em um log para retornar. Para investigar a recusa de pagamento, filtre os logs pelo pedido ou trace registrado em `.local/evidence/mvp-*-demo/scenarios.json`. Encerre o port-forward com Ctrl+C antes de `down`.
+O baseline mede conclusão e duração causal dos três cenários. O ensaio de alerta pausa Payment temporariamente, observa o aviso no Prometheus e restaura o serviço. Aguarde cada comando terminar antes de iniciar o próximo. Os detalhes, limites e outros ensaios de escala e falha estão no [runbook operacional](docs/product/operations-runbook.md) e no [runbook pós-MVP](docs/product/post-mvp-runbook.md).
 
-O sucesso da API não certifica os cliques de UI. O verificador também não afirma aprovação completa sem teste de recuperação, reconstrução e preservação do OrderFlow.
+## Limites da demonstração
 
-## Contratos e limites
+- O cluster tem um nó e um broker Kafka; a recriação de pods comprova recuperação eventual, não alta disponibilidade.
+- O processamento é pelo menos uma vez, com outbox e deduplicação por `event_id`. A ordem observada vale por tópico e partição no fluxo normal; replay e estacionamento não preservam posição original.
+- A hipótese de concluir 95% dos pedidos sintéticos em até 5 s **não é um SLO aprovado**. Os alertas são experimentais e não enviam notificações externas.
+- O sucesso dos comandos de API não substitui a inspeção visual do percurso Grafana. Consulte os [relatórios](docs/product/post-mvp-report.md) para saber quais passos foram efetivamente verificados.
 
-- Tópicos `observa.probe.started.v1` e `observa.probe.completed.v1`: duas partições, replicação 1; key = `order_id` UTF-8.
-- Payload: `probe_id`, `order_id`, `step`, `occurred_at`. W3C Trace Context fica nos headers; fixtures em `tests/fixtures`.
-- Init container cria/persiste contexto e termina; outro container lê o carrier e publica. O volume temporário não é uma outbox transacional.
-- Duas réplicas Node dividem partições. O commit ocorre após confirmação do publish; entrega pelo menos uma vez permite duplicatas em falhas posteriores ao publish.
-- Ordenação é comprovada separadamente por tópico/partição, sem promessa global ou exatamente uma vez.
-- O cluster single-node/single-broker não oferece alta disponibilidade. As medições de demonstração não definem um SLO. Escala horizontal, HPA e falhas controladas têm critérios próprios no backlog; consulte o runbook para o estado validado da execução atual.
+O [relatório do Spike 0](docs/product/spike-0-report.md) registra a validação histórica da propagação Python → Kafka → Node → Kafka → Python. O [PRD](docs/product/prd.md), o [backlog](docs/product/backlog.md) e o [contrato Kafka](docs/architecture/kafka-contract.md) documentam escopo e decisões.
 
-## Estrutura
-
-- `probes/`: aplicações, contratos, Dockerfiles e testes por runtime.
-- `infra/`: manifests, configurações e digests externos fixados.
-- `scripts/`: automação PowerShell e teste controlado de recuperação.
-- `tests/evidence/`: auditoria offline de respostas Tempo/Loki.
-- `docs/product/`: escopo, handoff e relatório do spike.
-
-Consulte `docs/product/spike-0-report.md` para a evidência histórica do Spike 0 e o runbook do MVP para a jornada atual.
-
-## Convenção de commits
-
-Use `<tipo>: <descrição em português>`, com os tipos convencionais `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf` e `ci`. Exemplo: `feat: adicionar confirmação de pedidos`.
+Commits usam `<tipo>: <descrição em português>`, com os tipos `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf` e `ci`.
