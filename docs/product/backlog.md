@@ -174,7 +174,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Fora do escopo:** publicar artefatos brutos, IDs de pedidos, credenciais, SLO de produção ou nova interface web.
 - **Critérios de aceite:** avaliador encontra pré-requisitos, comandos, percurso métrica → trace → logs → trace e limites no README; executa os três cenários a partir de checkout limpo; links e comandos funcionam; a síntese pública aponta para evidência reproduzível sem dados locais sensíveis.
 - **Dependências:** US-103 com evidência operacional registrada e US-106 com estado remoto declarado corretamente; execução completa por terceiro requer Docker e recursos locais adequados.
-- **Prontidão:** **Em andamento**. README e relatório foram atualizados; falta validar a experiência em checkout limpo e registrar CI verde.
+- **Prontidão:** **Validada localmente em checkout limpo**. Instalação, `up`, `status`, `contract`, `demo`, `recovery` e percurso Grafana passaram; o refresh automático foi documentado. A publicação desta revisão e a CI verde seguem pendentes.
 - **Verificações:** leitura independente do roteiro, execução dos comandos, inspeção visual Grafana, revisão de links, diff e scan de segredos.
 - **Incertezas:** disponibilidade do ambiente de um avaliador externo; o teste local em checkout separado não substitui essa validação quando ela não puder ser feita.
 

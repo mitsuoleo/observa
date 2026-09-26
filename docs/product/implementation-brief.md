@@ -10,7 +10,7 @@ Fazer a CI pública validar o mesmo conjunto de checks já executado localmente 
 
 1. **US-106:** confirmar no log da [execução falha](https://github.com/mitsuoleo/observa/actions/runs/36258516353) a etapa e a mensagem exatas. O workflow tentou instalar Gitleaks com um caminho diferente daquele declarado pelo módulo da versão fixada. O patch local corrige esse caminho e desliga o cache Go, pois o repositório não tem `go.mod` ou `go.sum`. Repetir CI após envio aprovado; caso surja outra falha, diagnosticar a etapa e corrigir somente a causa, sem remover checks.
 2. **US-103:** manter no relatório o baseline 30/30, o alerta Payment disparado e resolvido, o `demo` pós-recuperação e a carga 60/60 a 5 pedidos/s. Preservar a tentativa falha a 12 pedidos/s como limite observado. O script `alert-verify.ps1` permite repetir o ensaio com restauração automática.
-3. **US-107:** validar o README em um checkout separado, seguir os três cenários e o percurso Grafana métrica → trace → logs → trace; corrigir passos implícitos e links. Publicar só contagens, estados, horários e limites. Artefatos brutos continuam em `.local/`.
+3. **US-107:** o checkout separado do commit local `ff81956` passou em instalação, `up`, `status`, `contract`, `demo`, `recovery` e Grafana métrica → trace → logs → trace. O passo implícito de pausar o refresh foi documentado. Publicar só contagens, estados, horários e limites; artefatos brutos continuam em `.local/`.
 
 ## Contexto técnico comprovado
 

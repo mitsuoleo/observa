@@ -10,7 +10,7 @@ Laboratório local para demonstrar **como diagnosticar e recuperar uma jornada d
 | Pagamento recusado | `FAILED` | `payment.rejected`, `order.failed` |
 | Estoque indisponível após aprovação | `CANCELLED` | Compensação `payment.refund.requested` → `payment.refunded` |
 
-O comando `demo` executa os três casos. No [dashboard Grafana](http://127.0.0.1:13000/d/observa-mvp), uma amostra de duração leva à trace no Tempo; **Related logs** abre os registros no Loki, e **View trace** retorna à mesma execução. O roteiro exato está no [runbook do MVP](docs/product/mvp-runbook.md#diagnóstico-por-métrica-trace-e-log). A [síntese de evidências atual](docs/portfolio/evidence-2026-09-26.md) e os [relatórios de validação](docs/product/post-mvp-report.md) distinguem resultados observados dos limites dos ensaios.
+O comando `demo` executa os três casos. No [dashboard Grafana](http://127.0.0.1:13000/d/observa-mvp), pause o refresh de 10 s em **Off** e abra um exemplar recente do painel **Exemplars**. **Query with Tempo** leva à trace; **Related logs** abre os registros no Loki, e **View trace** retorna à mesma execução. O roteiro exato está no [runbook do MVP](docs/product/mvp-runbook.md#diagnóstico-por-métrica-trace-e-log). A [síntese de evidências atual](docs/portfolio/evidence-2026-09-26.md) e os [relatórios de validação](docs/product/post-mvp-report.md) distinguem resultados observados dos limites dos ensaios.
 
 ## Reproduzir a demonstração
 
