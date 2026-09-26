@@ -163,7 +163,7 @@ Há paralelismo técnico possível, mas uma história só está pronta para acei
 - **Valor:** validar testes, builds, manifests e vulnerabilidades automaticamente.
 - **Dependência:** estrutura de build estabilizada.
 - **Aceite resumido:** CI executa lint/typecheck/testes, build de imagens, validação de manifests e scan sem remover controles para ficar verde.
-- **Estado em 26/09/2026:** repositório público e primeira execução remota existentes; essa execução falhou antes de validar o check completo. O caminho de instalação do Gitleaks e o cache Go foram corrigidos localmente; falta uma execução remota verde, com log da etapa e checks preservados. Consulte o [relatório pós-MVP](post-mvp-report.md).
+- **Estado em 26/09/2026:** repositório público e primeira execução remota existentes; essa execução falhou na instalação do Gitleaks, conforme o log fornecido. O caminho do módulo e o cache Go foram corrigidos localmente; falta uma execução remota verde com os checks preservados. Consulte o [relatório pós-MVP](post-mvp-report.md).
 
 ### US-107 — Tornar a demonstração pública avaliável
 
